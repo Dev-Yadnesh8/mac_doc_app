@@ -1,33 +1,45 @@
 import 'package:flutter/material.dart';
 
-
-class MacOsInspiredDoc extends StatefulWidget {
-  const MacOsInspiredDoc({super.key});
+class MacOsInspiredDock extends StatefulWidget {
+  const MacOsInspiredDock({super.key});
 
   @override
-  State<MacOsInspiredDoc> createState() => _MacOsInspiredDockState();
+  State<MacOsInspiredDock> createState() => _MacOsInspiredDockState();
 }
 
-class _MacOsInspiredDockState extends State<MacOsInspiredDoc> {
-  int? hoveredIndex; // Index of the item being hovered over
-  int? draggedIndex; // Index of the item currently being dragged
-  double baseItemHeight = 60; // Base height for each item in the dock
-  double verticalItemsPadding = 12; // Padding between items
-  List<String> items = ['A', 'B', 'C', 'D', 'E']; // List of items in the dock
+class _MacOsInspiredDockState extends State<MacOsInspiredDock> {
+  /// The index of the currently hovered icon.
+  int? hoveredIndex;
 
-  /// Scales the size of the dock item based on whether it's hovered or dragged.
+  /// The index of the icon currently being dragged.
+  int? draggedIndex;
+
+  /// The base height of each dock item.
+  double baseItemHeight = 60;
+
+  /// Vertical padding between dock items.
+  double verticalItemsPadding = 12;
+
+  /// List of icons to display in the dock.
+  List<IconData> icons = [
+    Icons.person,
+    Icons.message,
+    Icons.call,
+    Icons.camera,
+    Icons.photo,
+  ];
+
+  /// Returns the scaled size for an icon based on whether it's hovered or being dragged.
   double getScaledSize(int index) {
     const double maxSize = 80;
     const double nonHoveredMaxSize = 60;
 
-    // Return the size based on whether the item is hovered or dragged
-    if (hoveredIndex == index || draggedIndex == index) {
-      return maxSize;
-    }
-    return nonHoveredMaxSize;
+    return (hoveredIndex == index || draggedIndex == index)
+        ? maxSize
+        : nonHoveredMaxSize;
   }
 
-  /// Adjusts the Y translation for the dragged or hovered item.
+  /// Returns the vertical translation for an icon based on hover or drag.
   double getTranslationY(int index) {
     return (hoveredIndex == index || draggedIndex == index) ? -24 : 0;
   }
@@ -35,12 +47,12 @@ class _MacOsInspiredDockState extends State<MacOsInspiredDoc> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E), // Dark background for modern look
+      backgroundColor: const Color(0xFF1E1E1E), // Background color for the app
       body: Center(
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Dock background with gradient and rounded corner
+            // Dock background with gradient and rounded corners
             Positioned(
               height: baseItemHeight + 30,
               left: 0,
@@ -50,13 +62,12 @@ class _MacOsInspiredDockState extends State<MacOsInspiredDoc> {
                   borderRadius: BorderRadius.circular(32),
                   gradient: const LinearGradient(
                     colors: [
-                      Color(0xFF4A90E2), // Soft blue for a more polished feel
-                      Color(0xFF0065D1), // Darker blue to match macOS dock style
+                      Color(0xFF4A90E2),
+                      Color(0xFF0065D1),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                 
                 ),
               ),
             ),
@@ -66,95 +77,93 @@ class _MacOsInspiredDockState extends State<MacOsInspiredDoc> {
               padding: EdgeInsets.all(verticalItemsPadding),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                children: List.generate(items.length, (index) {
-                  return Draggable<String>(
-                    data: items[index],
+                children: List.generate(icons.length, (index) {
+                  return Draggable<IconData>(
+                    data: icons[index],
                     feedback: Material(
                       color: Colors.transparent,
-                      child: Opacity(
-                        opacity: 0.8,
-                        child: Container(
-                          height: 100, // Larger feedback size
-                          width: 100,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFF9F00), // Vibrant amber feedback
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.3),
-                                spreadRadius: 5,
-                                blurRadius: 15,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              items[index],
-                              style: const TextStyle(
-                                fontSize: 40,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold, // Emphasized text
-                              ),
+                      child: Container(
+                        height: getScaledSize(index),
+                        width: getScaledSize(index),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF9F00),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              spreadRadius: 5,
+                              blurRadius: 15,
+                              offset: const Offset(0, 8),
                             ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Icon(
+                            icons[index],
+                            color: Colors.white,
+                            size: 40,
                           ),
                         ),
                       ),
                     ),
-                    childWhenDragging: Container(), // Empty space when dragging
+                    childWhenDragging: Container(),
                     onDragStarted: () {
+                      // Mark the item as being dragged and hovered
                       setState(() {
-                        hoveredIndex = index; // Highlight item being dragged
-                        draggedIndex = index; // Track dragged item
+                        hoveredIndex = index;
+                        draggedIndex = index;
                       });
                     },
                     onDragCompleted: () {
+                      // Reset the dragged index once drag is complete
                       setState(() {
-                        draggedIndex = null; // Reset dragged item after completion
+                        draggedIndex = null;
                       });
                     },
                     onDraggableCanceled: (velocity, offset) {
+                      // Reset hovered state if drag is canceled
                       setState(() {
-                        hoveredIndex = null; // Reset hovered item if drag is canceled
+                        hoveredIndex = null;
                       });
                     },
                     child: MouseRegion(
-                      cursor: SystemMouseCursors.click, // Change cursor to 'click' on hover
+                      cursor: SystemMouseCursors.click,
                       onEnter: (event) {
+                        // Set the hovered index when mouse enters the region
                         setState(() {
-                          hoveredIndex = index; // Set hovered item index
+                          hoveredIndex = index;
                         });
                       },
                       onExit: (event) {
+                        // Reset hovered index when mouse exits
                         setState(() {
-                          // Reset hovered index when mouse leaves
                           if (draggedIndex != index) {
                             hoveredIndex = null;
                           }
                         });
                       },
-                      child: DragTarget<String>(
+                      child: DragTarget<IconData>(
                         onAcceptWithDetails: (details) {
+                          // Handle the drag-and-drop logic
                           setState(() {
-                            int fromIndex = items.indexOf(details.data);
+                            int fromIndex = icons.indexOf(details.data);
                             int toIndex = index;
 
-                            // Move item in the list with smooth animation
+                            // Only move if the source and target are different
                             if (fromIndex != toIndex) {
-                              String draggedItem = items.removeAt(fromIndex);
-                              items.insert(toIndex, draggedItem);
-                              hoveredIndex = null; // Reset hovered index after move
+                              IconData draggedIcon = icons.removeAt(fromIndex);
+                              icons.insert(toIndex, draggedIcon);
+                              hoveredIndex = null; // Reset hover state
                             }
                           });
                         },
-                        onWillAcceptWithDetails: (details) {
-                          return true; // Allow drop
-                        },
+                        onWillAcceptWithDetails: (details) => true,
                         builder: (context, candidateData, rejectedData) {
-                          double margin = (hoveredIndex == index) ? 30 : 10; // Space adjustment for hovered items
+                          // Set margin for the hovered item
+                          double margin = (hoveredIndex == index) ? 30 : 10;
                           return AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut, // Smooth animation
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeInOut,
                             height: getScaledSize(index),
                             width: getScaledSize(index),
                             alignment: AlignmentDirectional.bottomCenter,
@@ -166,8 +175,8 @@ class _MacOsInspiredDockState extends State<MacOsInspiredDoc> {
                                 height: 80,
                                 decoration: BoxDecoration(
                                   color: hoveredIndex == index
-                                      ? const Color(0xFFFFB300) // Lighter amber on hover
-                                      : const Color(0xFFFF9F00), // Default amber color
+                                      ? const Color(0xFFFFB300)
+                                      : const Color(0xFFFF9F00),
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
@@ -179,13 +188,10 @@ class _MacOsInspiredDockState extends State<MacOsInspiredDoc> {
                                   ],
                                 ),
                                 child: Center(
-                                  child: Text(
-                                    items[index],
-                                    style: const TextStyle(
-                                      fontSize: 22,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  child: Icon(
+                                    icons[index],
+                                    size: 32,
+                                    color: Colors.white,
                                   ),
                                 ),
                               ),

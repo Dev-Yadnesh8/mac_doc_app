@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.light,
         primarySwatch: Colors.blue,
       ),
-      home:  const MacOsInspiredDoc(),
+      home:  const MacOsInspiredDock(),
     );
   }
 }
