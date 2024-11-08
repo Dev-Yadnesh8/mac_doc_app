@@ -8,19 +8,11 @@ class MacOsInspiredDock extends StatefulWidget {
 }
 
 class _MacOsInspiredDockState extends State<MacOsInspiredDock> {
-  /// The index of the currently hovered icon.
   int? hoveredIndex;
-
-  /// The index of the icon currently being dragged.
   int? draggedIndex;
-
-  /// The base height of each dock item.
   double baseItemHeight = 60;
-
-  /// Vertical padding between dock items.
   double verticalItemsPadding = 12;
 
-  /// List of icons to display in the dock.
   List<IconData> icons = [
     Icons.person,
     Icons.message,
@@ -29,25 +21,35 @@ class _MacOsInspiredDockState extends State<MacOsInspiredDock> {
     Icons.photo,
   ];
 
-  /// Returns the scaled size for an icon based on whether it's hovered or being dragged.
   double getScaledSize(int index) {
     const double maxSize = 80;
     const double nonHoveredMaxSize = 60;
+    const double adjacentSize = 70;
 
-    return (hoveredIndex == index || draggedIndex == index)
-        ? maxSize
-        : nonHoveredMaxSize;
+    if (hoveredIndex == index || draggedIndex == index) {
+      return maxSize;
+    } else if ((hoveredIndex != null && (index == hoveredIndex! - 1 || index == hoveredIndex! + 1))) {
+      return adjacentSize;
+    } else {
+      return nonHoveredMaxSize;
+    }
   }
 
-  /// Returns the vertical translation for an icon based on hover or drag.
   double getTranslationY(int index) {
     return (hoveredIndex == index || draggedIndex == index) ? -24 : 0;
+  }
+
+  void moveApp(int fromIndex, int toIndex) {
+    setState(() {
+      IconData draggedIcon = icons.removeAt(fromIndex);
+      icons.insert(toIndex, draggedIcon);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E), // Background color for the app
+      backgroundColor: const Color(0xFF1E1E1E),
       body: Center(
         child: Stack(
           alignment: Alignment.center,
@@ -71,7 +73,6 @@ class _MacOsInspiredDockState extends State<MacOsInspiredDock> {
                 ),
               ),
             ),
-
             // Dock items with hover and drag functionalities
             Padding(
               padding: EdgeInsets.all(verticalItemsPadding),
@@ -82,7 +83,9 @@ class _MacOsInspiredDockState extends State<MacOsInspiredDock> {
                     data: icons[index],
                     feedback: Material(
                       color: Colors.transparent,
-                      child: Container(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 400), // Increased duration for smoother animation
+                        curve: Curves.easeInOut,
                         height: getScaledSize(index),
                         width: getScaledSize(index),
                         decoration: BoxDecoration(
@@ -108,20 +111,16 @@ class _MacOsInspiredDockState extends State<MacOsInspiredDock> {
                     ),
                     childWhenDragging: Container(),
                     onDragStarted: () {
-                      // Mark the item as being dragged and hovered
                       setState(() {
-                        hoveredIndex = index;
                         draggedIndex = index;
                       });
                     },
                     onDragCompleted: () {
-                      // Reset the dragged index once drag is complete
                       setState(() {
                         draggedIndex = null;
                       });
                     },
                     onDraggableCanceled: (velocity, offset) {
-                      // Reset hovered state if drag is canceled
                       setState(() {
                         hoveredIndex = null;
                       });
@@ -129,13 +128,11 @@ class _MacOsInspiredDockState extends State<MacOsInspiredDock> {
                     child: MouseRegion(
                       cursor: SystemMouseCursors.click,
                       onEnter: (event) {
-                        // Set the hovered index when mouse enters the region
                         setState(() {
                           hoveredIndex = index;
                         });
                       },
                       onExit: (event) {
-                        // Reset hovered index when mouse exits
                         setState(() {
                           if (draggedIndex != index) {
                             hoveredIndex = null;
@@ -144,25 +141,20 @@ class _MacOsInspiredDockState extends State<MacOsInspiredDock> {
                       },
                       child: DragTarget<IconData>(
                         onAcceptWithDetails: (details) {
-                          // Handle the drag-and-drop logic
                           setState(() {
                             int fromIndex = icons.indexOf(details.data);
                             int toIndex = index;
 
-                            // Only move if the source and target are different
                             if (fromIndex != toIndex) {
-                              IconData draggedIcon = icons.removeAt(fromIndex);
-                              icons.insert(toIndex, draggedIcon);
-                              hoveredIndex = null; // Reset hover state
+                              moveApp(fromIndex, toIndex);
                             }
                           });
                         },
                         onWillAcceptWithDetails: (details) => true,
                         builder: (context, candidateData, rejectedData) {
-                          // Set margin for the hovered item
                           double margin = (hoveredIndex == index) ? 30 : 10;
                           return AnimatedContainer(
-                            duration: const Duration(milliseconds: 500),
+                            duration: const Duration(milliseconds: 400), // Smoother transition
                             curve: Curves.easeInOut,
                             height: getScaledSize(index),
                             width: getScaledSize(index),
